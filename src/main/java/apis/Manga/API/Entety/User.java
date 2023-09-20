@@ -22,4 +22,5 @@ public class User {
     @OneToOne
     @JoinColumn(name = "project_id", referencedColumnName = "id")
     private Project project;
+
 }

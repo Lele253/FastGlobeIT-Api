@@ -23,4 +23,6 @@ public class Project {
 
     @OneToMany(mappedBy = "project")
     private List<ToDo> toDos;
+
+    //test
 }
