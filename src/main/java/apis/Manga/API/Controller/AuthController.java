@@ -4,6 +4,7 @@ import apis.Manga.API.Entety.User;
 import apis.Manga.API.Repository.UserRepository;
 import apis.Manga.API.Security.JwtAuthentificationFilter;
 import apis.Manga.API.Security.JwtTokenProvider;
+import apis.Manga.API.Service.UserService;
 import apis.Manga.API.request.AuthRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,14 +31,16 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
     private JwtTokenProvider jwtTokenProvider;
+    private UserService userService;
 
 
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+    public AuthController(UserService userService, UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userRepository = userRepository;
 
 
     }
@@ -45,17 +48,9 @@ public class AuthController {
     @CrossOrigin
     @PostMapping(value = "/regist")
     public ResponseEntity<User> register(@RequestBody AuthRequest authRequest) {
-        Optional<User> userOptional = userRepository.findByEmail(authRequest.getEmail());
-        if (userOptional.isPresent()) {
-            return ResponseEntity.badRequest().build();
-        }
 
-        User user = new User();
-        user.setEmail(authRequest.getEmail());
-        user.setName(authRequest.getUsername());
+        User created = userService.createUser(authRequest);
 
-        user.setPassword(passwordEncoder.encode(authRequest.getPassword()));
-        User created = userRepository.save(user);
         return ResponseEntity.ok(created);
     }
 
@@ -80,14 +75,6 @@ public class AuthController {
         return userRepository.findByEmail(jwtTokenProvider.getUserMailFromToken(JwtAuthentificationFilter.x));
     }
 
-    @GetMapping("/user/all/{nutzerId}")
-    public User leseNutzerListe(@PathVariable long nutzerId) {
-        Optional<User> user = Optional.ofNullable(userRepository.findById(nutzerId));
-        if (user.isPresent()) {
-            return user.get();
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-    }
 
     @DeleteMapping("/user/all/{nutzerId}")
     public Boolean deleteOrder1(@PathVariable(value = "nutzerId") Long Id) {
