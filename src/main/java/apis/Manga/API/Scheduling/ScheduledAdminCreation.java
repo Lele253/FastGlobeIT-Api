@@ -22,19 +22,20 @@ public class ScheduledAdminCreation {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
     }
-    @Scheduled(initialDelay = 0,fixedRate = Long.MAX_VALUE)
+
+    @Scheduled(initialDelay = 0, fixedRate = Long.MAX_VALUE)
     public ResponseEntity<Object> createAdminUserAdminAdmin() {
         Optional<User> vorhanden = userRepository.findByEmail("admin");
-        if (!vorhanden.isPresent()){
-        User user = new User();
-        user.setEmail("admin");
-        user.setUsername("Admin");
+        if (!vorhanden.isPresent()) {
+            User user = new User();
+            user.setEmail("admin");
+            user.setName("Admin");
             user.setStatus("Admin");
 
             user.setPassword(passwordEncoder.encode("admin"));
 
-        User createdAdmin = userRepository.save(user);
-        return ResponseEntity.ok(createdAdmin);
+            User createdAdmin = userRepository.save(user);
+            return ResponseEntity.ok(createdAdmin);
 
         }
         return null;

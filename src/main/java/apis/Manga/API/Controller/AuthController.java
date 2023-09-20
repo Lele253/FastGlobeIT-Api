@@ -1,6 +1,6 @@
 package apis.Manga.API.Controller;
-import apis.Manga.API.Entety.*;
 
+import apis.Manga.API.Entety.User;
 import apis.Manga.API.Repository.UserRepository;
 import apis.Manga.API.Security.JwtAuthentificationFilter;
 import apis.Manga.API.Security.JwtTokenProvider;
@@ -12,16 +12,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 
-import java.util.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @CrossOrigin
 @RestController
@@ -34,7 +32,7 @@ public class AuthController {
     private JwtTokenProvider jwtTokenProvider;
 
 
-    public AuthController(  UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -44,11 +42,8 @@ public class AuthController {
 
     }
 
-
-
-
     @CrossOrigin
-    @PostMapping(value = "/Regist")
+    @PostMapping(value = "/regist")
     public ResponseEntity<User> register(@RequestBody AuthRequest authRequest) {
         Optional<User> userOptional = userRepository.findByEmail(authRequest.getEmail());
         if (userOptional.isPresent()) {
@@ -57,12 +52,26 @@ public class AuthController {
 
         User user = new User();
         user.setEmail(authRequest.getEmail());
-        user.setUsername(authRequest.getUsername());
+        user.setName(authRequest.getUsername());
 
         user.setPassword(passwordEncoder.encode(authRequest.getPassword()));
         User created = userRepository.save(user);
         return ResponseEntity.ok(created);
+    }
 
+    @CrossOrigin
+    @PutMapping(value = "/user/{id}")
+    public ResponseEntity<String> updateUserById(@PathVariable(value = "id") Long id, AuthRequest authRequest) {
+        Optional<User> selectedUser = userRepository.findById(id);
+
+        if (selectedUser.isPresent()) {
+            selectedUser.get().setName(authRequest.getUsername());
+            selectedUser.get().setEmail(authRequest.getEmail());
+            userRepository.save(selectedUser.get());
+            return ResponseEntity.ok(selectedUser.toString());
+        }
+
+        return ResponseEntity.badRequest().body("User nicht gefunden");
     }
 
 
@@ -87,8 +96,6 @@ public class AuthController {
     }
 
 
-
-
     @CrossOrigin
     @GetMapping("/user/all")
     public List<User> getUserAll() {
@@ -96,23 +103,21 @@ public class AuthController {
     }
 
 
-
-
-
     @CrossOrigin
     @PostMapping(value = "/login")
-    public ResponseEntity<Map<String, Object>>  login(@RequestBody AuthRequest authRequest) {
-        try{
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        authRequest.getEmail(),
-                        authRequest.getPassword()
-                )
-        );
+    public ResponseEntity<Map<String, Object>> login(@RequestBody AuthRequest authRequest) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authRequest.getEmail(),
+                            authRequest.getPassword()
+                    )
+            );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwtToken = jwtTokenProvider.generateToken(authentication);
 
-            Optional<User> userDetails = userRepository.findByEmail(authRequest.getEmail());;
+            Optional<User> userDetails = userRepository.findByEmail(authRequest.getEmail());
+            ;
 
             Map<String, Object> response = new HashMap<>();
             response.put("token", jwtToken);
@@ -125,9 +130,7 @@ public class AuthController {
         }
 
 
-
     }
-
 
 
 }
