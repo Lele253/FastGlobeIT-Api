@@ -84,13 +84,6 @@ public class AuthController {
     }
 
 
-    /* @CrossOrigin
-     @PostMapping(value = "/login")
-     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
-         Map<String, Object> response = userService.login(user);
-         if (response == null) return ResponseEntity.badRequest().build();
-         return ResponseEntity.ok(response);
-     }*/
 
     @CrossOrigin
     @PostMapping(value = "/login")

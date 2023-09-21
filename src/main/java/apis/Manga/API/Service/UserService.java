@@ -70,29 +70,6 @@ public class UserService {
         return null;
     }
 
-    public Map<String, Object> login(User user) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            user.getEmail(),
-                            user.getPassword()
-                    )
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwtToken = jwtTokenProvider.generateToken(authentication);
-
-            Optional<User> userDetails = userRepository.findByEmail(user.getEmail());
-
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("token", jwtToken);
-            response.put("user", userDetails);
-
-            return response;
-        } catch (AuthenticationException e) {
-            return null;
-        }
-    }
 
     public boolean isAdmin() {
         Optional<User> selectedUser = userRepository.findByEmail(jwtTokenProvider.getUserMailFromToken(JwtAuthentificationFilter.x));
