@@ -96,7 +96,7 @@ public class UserService {
 
     public boolean isAdmin() {
         Optional<User> selectedUser = userRepository.findByEmail(jwtTokenProvider.getUserMailFromToken(JwtAuthentificationFilter.x));
-        if (selectedUser.isPresent() && selectedUser.get().getStatus() == "Admin") return true;
+        if (selectedUser.isPresent() && selectedUser.get().getStatus().equals("Admin")) return true;
         return false;
     }
 
