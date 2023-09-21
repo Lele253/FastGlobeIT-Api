@@ -3,13 +3,18 @@ package apis.Manga.API.Service;
 import apis.Manga.API.Entety.User;
 import apis.Manga.API.Repository.ProjectRepository;
 import apis.Manga.API.Repository.UserRepository;
+import apis.Manga.API.Security.JwtAuthentificationFilter;
 import apis.Manga.API.Security.JwtTokenProvider;
-import apis.Manga.API.request.AuthRequest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -29,20 +34,70 @@ public class UserService {
     }
 
 
-
-    public User createUser( AuthRequest authRequest){
-        Optional<User> userOptional = userRepository.findByEmail(authRequest.getEmail());
+    public User createUser(User user) {
+        Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
         if (userOptional.isPresent()) {
             return null;
         }
 
-        User user = new User();
-        user.setEmail(authRequest.getEmail());
-        user.setName(authRequest.getUsername());
+        User selectedUser = new User();
+        selectedUser.setEmail(user.getEmail());
+        selectedUser.setName(user.getName());
+        selectedUser.setProject(user.getProject());
 
-        user.setPassword(passwordEncoder.encode(authRequest.getPassword()));
-        User created = userRepository.save(user);
+        selectedUser.setPassword(passwordEncoder.encode(selectedUser.getPassword()));
+        User created = userRepository.save(selectedUser);
         return created;
+    }
+
+    public User updateUserById(Long id, User user) {
+        Optional<User> selectedUser = userRepository.findById(id);
+
+
+        if (selectedUser.isPresent()) {
+
+            selectedUser.get().setName(user.getName());
+            selectedUser.get().setEmail(user.getEmail());
+            selectedUser.get().setProject(user.getProject());
+
+            if (selectedUser.get().getPassword() != passwordEncoder.encode(user.getPassword())) {
+                selectedUser.get().setPassword(passwordEncoder.encode(user.getPassword()));
+            }
+
+            userRepository.save(selectedUser.get());
+            return selectedUser.get();
+        }
+        return null;
+    }
+
+    public Map<String, Object> login(User user) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            user.getEmail(),
+                            user.getPassword()
+                    )
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwtToken = jwtTokenProvider.generateToken(authentication);
+
+            Optional<User> userDetails = userRepository.findByEmail(user.getEmail());
+
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", jwtToken);
+            response.put("user", userDetails);
+
+            return response;
+        } catch (AuthenticationException e) {
+            return null;
+        }
+    }
+
+    public boolean isAdmin() {
+        Optional<User> selectedUser = userRepository.findByEmail(jwtTokenProvider.getUserMailFromToken(JwtAuthentificationFilter.x));
+        if (selectedUser.isPresent() && selectedUser.get().getStatus() == "Admin") return true;
+        return false;
     }
 
 }
