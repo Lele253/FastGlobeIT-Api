@@ -3,19 +3,18 @@ package apis.Manga.API.request;
 
 import lombok.Data;
 
-@Data
 public class AuthRequest {
     private String email;
     private String password;
-    private String username;
+    private String name;
 
 
     public String getUsername() {
-        return username;
+        return name;
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        this.name = username;
     }
 
     public String getPassword() {

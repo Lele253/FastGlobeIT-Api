@@ -5,11 +5,18 @@ import apis.Manga.API.Repository.UserRepository;
 import apis.Manga.API.Security.JwtAuthentificationFilter;
 import apis.Manga.API.Security.JwtTokenProvider;
 import apis.Manga.API.Service.UserService;
+import apis.Manga.API.request.AuthRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -77,14 +84,47 @@ public class AuthController {
     }
 
 
+    /* @CrossOrigin
+     @PostMapping(value = "/login")
+     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
+         Map<String, Object> response = userService.login(user);
+         if (response == null) return ResponseEntity.badRequest().build();
+         return ResponseEntity.ok(response);
+     }*/
+
     @CrossOrigin
     @PostMapping(value = "/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
-        Map<String, Object> response = userService.login(user);
-        if (response == null) return ResponseEntity.badRequest().build();
-        return ResponseEntity.ok(response);
-    }
+    public ResponseEntity<Map<String, Object>>  login(@RequestBody AuthRequest authRequest) {
+        System.out.println(authRequest.getPassword());
 
+        try{
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authRequest.getEmail(),
+                            authRequest.getPassword()
+                    )
+            );
+            System.out.println("test1");
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwtToken = jwtTokenProvider.generateToken(authentication);
+
+            Optional<User> userDetails = userRepository.findByEmail(authRequest.getEmail());;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", jwtToken);
+            response.put("user", userDetails);
+
+            System.out.println("test2");
+            return ResponseEntity.ok(response);
+
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+
+
+    }
 }
 
 

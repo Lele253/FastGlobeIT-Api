@@ -1,4 +1,4 @@
-package apis.Manga.API.Service;
+/* package apis.Manga.API.Service;
 
 import lombok.Data;
 import org.springframework.mail.SimpleMailMessage;
@@ -138,5 +138,5 @@ public class EmailService {
         }
 
     }
-}
+}*/
 
