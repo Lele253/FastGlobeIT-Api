@@ -1,5 +1,6 @@
 package apis.Manga.API.Service;
 
+import apis.Manga.API.Entety.Project;
 import apis.Manga.API.Entety.User;
 import apis.Manga.API.Repository.ProjectRepository;
 import apis.Manga.API.Repository.UserRepository;
@@ -10,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,18 +21,20 @@ import java.util.Optional;
 
 @Service
 public class UserService {
+    private PasswordGeneratorService pgs;
     private UserRepository userRepository;
     private ProjectRepository projectRepository;
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
     private JwtTokenProvider jwtTokenProvider;
 
-    public UserService(UserRepository userRepository, ProjectRepository projectRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+    public UserService( UserRepository userRepository, ProjectRepository projectRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
+
     }
 
 
@@ -39,15 +43,12 @@ public class UserService {
         if (userOptional.isPresent()) {
             return null;
         }
-
-        User selectedUser = new User();
-        selectedUser.setEmail(user.getEmail());
-        selectedUser.setName(user.getName());
-        selectedUser.setProject(user.getProject());
-
-        selectedUser.setPassword(passwordEncoder.encode(selectedUser.getPassword()));
-        User created = userRepository.save(selectedUser);
-        return created;
+        Project project = new Project();
+        projectRepository.save(project);
+        user.setProject(project);
+        user.setPassword(passwordEncoder.encode(PasswordGeneratorService.generateRandomPassword()));
+        userRepository.save(user);
+        return user;
     }
 
     public User updateUserById(Long id, User user) {

@@ -35,9 +35,11 @@ public class ProjectService {
         return  newProjekt;
     }
 
-    public Project updateProjectbyId(Long id, List<Paket> paket ){
-        Optional<Project> projectInstance = projectRepository.findById(id);
+    public Project updateProjectbyId(Project projekt, List<Paket> paket ){
+        Optional<Project> projectInstance = projectRepository.findById(projekt.getId());
         if (projectInstance.isPresent()){
+
+            projectInstance.get();
             projectInstance.get().setPakete(paket);
         }
         return null;

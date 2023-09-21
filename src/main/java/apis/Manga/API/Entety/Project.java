@@ -1,5 +1,6 @@
 package apis.Manga.API.Entety;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -15,6 +16,7 @@ public class Project {
     private String name;
     private String url;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "project")
     private User user;
 

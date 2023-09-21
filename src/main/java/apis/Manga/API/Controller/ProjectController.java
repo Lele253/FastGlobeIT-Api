@@ -29,8 +29,6 @@ public class ProjectController {
     }
 
 
-
-
     @GetMapping("/project")
     public List<Project> getAllProject(){
         if (userService.isAdmin()){
@@ -38,4 +36,6 @@ public class ProjectController {
         }
         return null;
     }
+
+
 }
